@@ -6,6 +6,28 @@ use Carp;
 use base 'HTML::TreeBuilder';
 use base 'HTML::Element';
 
+# Global parser settings
+our %options = (
+  # If true, trying to insert text, or any of %isPhraseMarkup right
+  # under 'body' will implicate a 'p'. If false, will just go there.
+  implicit_tags => 1,
+  implicit_body_p_tag => 0,
+  # whether ignorable WS in this tree should be deleted
+  tighten => 1,
+  # to delete, once we find a real open-"html" tag
+  implicit => 1,
+  # Initialize parser settings
+  element_class => 'pQuery::DOM',
+  ignore_unknown => 1,
+  ignore_text => 0,
+  warn => 0,
+  no_space_compacting => 1,
+  store_comments => 0,
+  store_declarations => 0,
+  store_pis => 0,
+  p_strict => 0,
+);
+
 # This is a copy of HTML::TreeBuilder::new. Sadly. TreeBuilder should be
 # easier to subclass. The only change is s/HTML::Element/pQuery::DOM/g.
 sub _builder { # constructor!
@@ -25,26 +47,10 @@ sub _builder { # constructor!
     # The root of the tree is special, as it has these funny attributes,
     # and gets reblessed into this class.
 
-    # Initialize parser settings
-    $self->{'_implicit_tags'}  = 1;
-    $self->{'_implicit_body_p_tag'} = 0;
-    # If true, trying to insert text, or any of %isPhraseMarkup right
-    #  under 'body' will implicate a 'p'.  If false, will just go there.
-
-    $self->{'_tighten'} = 1;
-    # whether ignorable WS in this tree should be deleted
-
-    $self->{'_implicit'} = 1;  # to delete, once we find a real open-"html" tag
-
-    $self->{'_element_class'}      = 'pQuery::DOM';
-    $self->{'_ignore_unknown'}     = 1;
-    $self->{'_ignore_text'}        = 0;
-    $self->{'_warn'}               = 0;
-    $self->{'_no_space_compacting'}= 1;
-    $self->{'_store_comments'}     = 0;
-    $self->{'_store_declarations'} = 0;
-    $self->{'_store_pis'}          = 0;
-    $self->{'_p_strict'}           = 0;
+    # Global parser settings
+    for (keys %options) {
+        $self->{"_$_"} = $options{$_};
+    }
 
     # Parse attributes passed in as arguments
     if(@_) {
